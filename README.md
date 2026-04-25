@@ -37,6 +37,7 @@ You only really use this sort of system on Windows or MacOS. On Linux, SDL2 is p
     - [x] Perspective division (**N**ormalized **D**evice **C**oordinates).
     - [x] Hide backfaces. Use triangle face normals and camera direction vector to stop them rendering.
     - [ ] Convert to Clip Space.
+        - [x] Cull triangles.
         - [ ] Discard vertices outside screen bounds.
         - [ ] Re-triangulate broken triangles.
 - [ ] Set Camera movement to be relative to it's current orientation (not global).

@@ -132,6 +132,21 @@ void draw_cube(SDL_Surface *surface, double delta) {
 				| ((v.z >  v.w) << 5);	// Far plane
 		}
 
+		// Culling ONLY if tri is completely out of ONE plane.
+		// If one vertex is outside left plane, while other is out right plane
+		// and the third is out the top plane, this WON'T cull it.
+		// We'll need to do fancy clipping for that.
+		//
+		// Also has edge case where if tri is in position where verts are out of
+		// the left, back and top planes, for example, or left-left-back, while
+		// being completely outside the frustrum, we can't detect and cull it yet
+		// Likely will need to do a test to see if edge (or plane once we
+		// rasterize tris) clips into the frustrum and clip the tri accordingly
+		// This only concerns corners and edges of view frustrum.
+		//
+		// Actually, Raster clipping should take care of parts that clip into
+		// frustrum (except on z-axis, we clip normally there) by only drawing
+		// frustrum, but I'd still like to cull the tris we can.
 		if ((outcodes[0] & outcodes[1] & outcodes[2]) > 0) {
 			print_vec4(t.verts[0], "Vec0");
 			print_vec4(t.verts[1], "Vec1");
@@ -141,7 +156,12 @@ void draw_cube(SDL_Surface *surface, double delta) {
 			}
 			printf("\n");
 			continue; // entire triangle is out of frustrum, ignore.
-		} // else if for the partial state, where we need to clip tri.
+		}
+
+		// Clip z-axis. We do raster clipping for x and y (i.e., clip at render)
+		if ((outcodes[0] | outcodes[1] | outcodes[2]) >= (1<<4)) {
+			// TODO
+		}
 
 		// Second half of processing till screen space
 		for (int j = 0; j < 3; j++) {
