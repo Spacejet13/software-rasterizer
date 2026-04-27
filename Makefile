@@ -14,10 +14,11 @@ endif
 SRCDIR := ./src
 OBJDIR := ./bin/obj
 
-# Source, object and dependency file names. 
-SRCS := $(wildcard $(SRCDIR)/*.c)
+# Source, object, dependency file and directory names. 
+SRCS := $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/**/*.c)
 OBJS := $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
 DEPS := $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.d, $(SRCS))
+ODIR := $(sort $(dir $(OBJS)))
 EXEC := ./bin/renderer.exe
 
 .PHONY: init run clean
@@ -29,13 +30,14 @@ run: $(EXEC)
 $(EXEC): $(OBJS)
 	$(CC) $(OBJS) $(LDFLAGS) $(LDLIBS) -o $(EXEC)
 
-$(OBJDIR)%.o: $(SRCDIR)%.c | $(OBJDIR)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(ODIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 -include $(DEPS)
 
-$(OBJDIR):
-	@mkdir -p ./bin/obj
+# Ensure obj dirs exist before build
+$(ODIR):
+	@mkdir -p $@
 
 init:
 	@mkdir -p bin
@@ -43,5 +45,5 @@ init:
 	@echo Finished Initialization
 
 clean:
-	rm -f ./bin/obj/*.o ./bin/obj/*.d
+	rm -rf $(OBJDIR)/*
 
