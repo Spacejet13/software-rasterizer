@@ -1,6 +1,7 @@
 #include "defs.h"
 #include "linalg.h"
 #include "draw.h"
+#include "import.h"
 #include "input.h"
 #include "timing.h"
 #include <stdint.h>
@@ -41,6 +42,9 @@ void cam_transform(double delta) {
 }
 
 void draw_cube(SDL_Surface *surface, double delta) {
+	struct Mesh m = parse_obj("bin/cube.obj");
+
+	// clang-format off
 	struct Triangle cube[12] = {
 		(struct Triangle) {(struct Vec4){0, 0, 0, 1}, (struct Vec4){0, 1, 0, 1}, (struct Vec4){1, 1, 0, 1}},
 		(struct Triangle) {(struct Vec4){0, 0, 0, 1}, (struct Vec4){1, 1, 0, 1}, (struct Vec4){1, 0, 0, 1}},
@@ -60,6 +64,7 @@ void draw_cube(SDL_Surface *surface, double delta) {
 		(struct Triangle) {(struct Vec4){1, 0, 1, 1}, (struct Vec4){0, 0, 1, 1}, (struct Vec4){0, 0, 0, 1}},
 		(struct Triangle) {(struct Vec4){1, 0, 1, 1}, (struct Vec4){0, 0, 0, 1}, (struct Vec4){1, 0, 0, 1}},
 	};
+	// clang-format on
 
 	cam_transform(delta);
 
@@ -84,15 +89,6 @@ void draw_cube(SDL_Surface *surface, double delta) {
 	struct Mat4x4 view = get_view_matrix(cam_m);
 
 	struct Mat4x4 model_view = matrix_matrix_mul(model, view);
-
-/*	for (int i = 0; i < 4; i++) {
-		printf("| ");
-		for (int j = 0; j < 4; j++) {
-			printf("%.2f ", model.v[j][i]);
-		}
-		printf("|\n");
-	}
-	printf("----------\n"); */
 
 	for (int i = 0; i < 12; i++) {
 		struct Triangle t;
@@ -231,7 +227,7 @@ void cleanup(void) {
 double delta_time = 1;
 
 const int target_fps = 60;
-double ms_per_frame = (1.0 / target_fps) * 1000;
+uint64_t us_per_frame = 1e6 / target_fps;
 
 int main(int argc, char *argv[]) {
 	// As name suggests, initialize SDL.
@@ -248,12 +244,12 @@ int main(int argc, char *argv[]) {
 		draw_loop(delta_time);
 
 		mark_timer(delta);
-		double d_draw = (double)get_elapsed_time(delta) / 1e3;
-	
-		double sleep_ms = (ms_per_frame - d_draw);
-		sleep_ms = sleep_ms >= 0 ? sleep_ms : 0;
+		uint64_t d_draw = get_elapsed_time(delta) / 1e3;
 
-		ms_sleep(sleep_ms);
+		uint64_t sleep_us = (us_per_frame - d_draw);
+		sleep_us = sleep_us >= 0 ? sleep_us : 0;
+
+		us_sleep(sleep_us);
 
 		mark_timer(delta);
 		delta_time = (double)get_elapsed_time(delta) / 1e6;

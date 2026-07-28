@@ -36,6 +36,6 @@ uint64_t get_elapsed_time(struct Timer *t);
 /*
 *   Sleep
 */
-void ms_sleep(uint64_t ms_time);
+void us_sleep(uint64_t ms_time);
 
 #endif
